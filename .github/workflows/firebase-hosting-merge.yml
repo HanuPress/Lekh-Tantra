@@ -18,3 +18,9 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_LEKH_TANTRA_DEV }}'
           channelId: live
           projectId: lekh-tantra-dev
+      - uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions
+        env:
+          GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_LEKH_TANTRA_DEV }}'
+          PROJECT_ID: lekh-tantra-dev
