@@ -7,7 +7,13 @@ admin.initializeApp();
 const express = require('express');
 const exphbs = require('express-handlebars');
 const app = express();
-app.engine('handlebars', exphbs({defaultLayout: 'main', layoutsDir: "views/layouts/"}));
+
+const hbsConfig = {
+  defaultLayout: 'main', 
+  layoutsDir: "views/layouts/",
+  partialsDir: "views/partials/"
+};
+app.engine('handlebars', exphbs(hbsConfig));
 app.set('view engine', 'handlebars');
 
 const firestore = admin.firestore();
@@ -29,6 +35,25 @@ app.get('/', async (req: Request, res: Response) => {
     title: "Hanu",
     settings: blogSettings,
     posts: posts
+  });
+
+});
+
+app.get('/about', async (req: Request, res: Response) => {
+  
+  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
+  const blogSettings = blogSettingsQuery.data();
+  
+  const aboutMeQuery = await firestore.collection('BlogPosts').doc('AboutMe').get();
+  const aboutMe = aboutMeQuery.data();
+
+  const now = new Date();
+  blogSettings.currentYear = now.getFullYear();
+    
+  res.render('about', {
+    layout: false,
+    settings: blogSettings,
+    aboutMe: aboutMe
   });
 
 });

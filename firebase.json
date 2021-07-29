@@ -16,6 +16,9 @@
   "functions": {
     "source": "functions"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "emulators": {
     "functions": {
       "port": 5001
@@ -25,6 +28,9 @@
     },
     "hosting": {
       "port": 5000
+    },
+    "storage": {
+      "post": 9199
     },
     "ui": {
       "enabled": true,
