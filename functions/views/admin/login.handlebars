@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{> header }}
+    
+    <!-- Scripts for Firebase UI -->
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
+
+    <script type="text/javascript">
+      // FirebaseUI config.
+      var uiConfig = {
+        signInSuccessUrl: '/admin/dashboard',
+        signInOptions: [
+          // Leave the lines as is for the providers you want to offer your users.
+          firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+          firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
+        ],
+        // tosUrl and privacyPolicyUrl accept either url string or a callback
+        // function.
+        // Terms of service url/callback.
+        tosUrl: '/tos',
+        // Privacy policy url/callback.
+        privacyPolicyUrl: function() {
+          window.location.assign('/privacy');
+        }
+      };
+
+      // Initialize the FirebaseUI Widget using Firebase.
+      var ui = new firebaseui.auth.AuthUI(firebase.auth());
+      // The start method will wait until the DOM is loaded.
+      ui.start('#firebaseui-auth-container', uiConfig);
+
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          // User is logged in.
+          console.log(user.displayName);
+          firebase.auth().currentUser.getIdToken(true).then(function(token) {
+            console.log("--- Setting cookiee --- ", user.email);
+            document.cookie = '__session=' + token + ';max-age=3600; path=/';
+          });
+          
+        } else {
+          // User is not logged in
+          console.log("User is not logged in");
+        }
+      });
+
+    </script>
+
+  </head>
+
+  <body class="hold-transition login-page">
+    <div class="login-box">
+      <div class="login-logo">
+        <a href="/">{{settings.blogName}}</a>
+      </div>
+      <div class="card">
+        <div class="card-body login-card-body">
+          <div id="firebaseui-auth-container"></div>
+        </div>
+        <!-- /.login-card-body -->
+      </div>
+    </div>
+    <!-- Footer-->
+    {{> footer_scripts }}
+  </body>
+</html>

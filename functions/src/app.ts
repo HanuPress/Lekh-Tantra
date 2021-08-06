@@ -10,8 +10,8 @@ const app = express();
 
 const hbsConfig = {
   defaultLayout: 'main', 
-  layoutsDir: "views/layouts/",
-  partialsDir: "views/partials/"
+  layoutsDir: "views/blog/layouts/",
+  partialsDir: "views/blog/partials/"
 };
 app.engine('handlebars', exphbs(hbsConfig));
 app.set('view engine', 'handlebars');
@@ -26,10 +26,18 @@ app.get('/', async (req: Request, res: Response) => {
   const blogSettings = blogSettingsQuery.data();
   
   const postsQuery = await firestore.collection('BlogPosts').get();
-  const posts = postsQuery.docs.map((doc: any) => doc.data());
-  
+  const posts: any = [];
+  for (const doc of postsQuery.docs) {
+    const postData = doc.data();
+    if(postData.user){
+      const uq = await postData.user.get()
+      postData.user = uq.data();
+    }
+    posts.push(postData);
+  }
+  console.log(posts);
   res.set('Cache-Control', `public, max-age=${secondsLeftBeforeEndOfHour(date)}`);
-  res.render('postlist', {
+  res.render('blog/postlist', {
     name: "Varun Verma",
     time: date,
     title: "Hanu",
@@ -50,7 +58,7 @@ app.get('/about', async (req: Request, res: Response) => {
   const now = new Date();
   blogSettings.currentYear = now.getFullYear();
     
-  res.render('about', {
+  res.render('blog/about', {
     layout: false,
     settings: blogSettings,
     aboutMe: aboutMe

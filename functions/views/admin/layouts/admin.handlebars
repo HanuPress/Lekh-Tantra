@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{> header }}
+
+  <script type="text/javascript">
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        // User is logged in.
+        console.log(user.photoURL);console.log(user.displayName);
+        $(".user_name").text(user.displayName);
+        $(".user_image_url").attr("src", user.photoURL);
+      } else {
+        // User is not logged in
+        console.log("User is not logged in");
+        window.location.href = "/admin/login";
+      }
+    });
+  </script>
+
+  <script src="https://cdn.tiny.cloud/1/5srrqu1b16rx2fmdkkgqtzybvgn0gd2thonnfgnf9rtmftyg/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+  
+</head>
+<body class="hold-transition sidebar-mini">
+<!-- Site wrapper -->
+<div class="wrapper">
+
+  {{> navigation }}
+
+  {{> sidebar }}
+
+  <!-- Main Content-->
+  {{{body}}}
+  <!-- Main Content Ends here-->
+
+  {{> footer }}
+
+</div>
+<!-- ./wrapper -->
+
+{{> footer_scripts }}
+
+</body>
+</html>

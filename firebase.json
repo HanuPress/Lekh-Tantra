@@ -8,6 +8,14 @@
     ],
     "rewrites": [
       {
+        "source": "/admin{,/**}",
+        "function": "admin"
+      },
+      {
+        "source": "/api{,/**}",
+        "function": "api"
+      },
+      {
         "source": "**",
         "function": "app"
       }
@@ -35,6 +43,9 @@
     "ui": {
       "enabled": true,
       "port": 4000
+    },
+    "auth": {
+      "port": "9099"
     }
   }
 }
