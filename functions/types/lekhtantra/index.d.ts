@@ -4,9 +4,12 @@ export interface BlogPost {
     title: String,
     content: String,
     postLink: String,
+    status: String,
+    type: String,
     meta: {
-        publishedOn: Date
+        publishedOn?: Date,
+        createdOn: Date,
+        updatedOn: Date
     },
-    user: {
-    }
+    user: any
 }

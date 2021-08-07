@@ -19,13 +19,11 @@ app.set('view engine', 'handlebars');
 const firestore = admin.firestore();
 
 app.get('/', async (req: Request, res: Response) => {
-
-  const date = new Date();
-  
+ 
   const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
   const blogSettings = blogSettingsQuery.data();
   
-  const postsQuery = await firestore.collection('BlogPosts').get();
+  const postsQuery = await firestore.collection('BlogPosts').where('type', '==', 'BlogPost').get();
   const posts: any = [];
   for (const doc of postsQuery.docs) {
     const postData = doc.data();
@@ -33,14 +31,11 @@ app.get('/', async (req: Request, res: Response) => {
       const uq = await postData.user.get()
       postData.user = uq.data();
     }
+    postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
     posts.push(postData);
   }
-  console.log(posts);
-  res.set('Cache-Control', `public, max-age=${secondsLeftBeforeEndOfHour(date)}`);
+  //console.log(posts);
   res.render('blog/postlist', {
-    name: "Varun Verma",
-    time: date,
-    title: "Hanu",
     settings: blogSettings,
     posts: posts
   });
@@ -65,11 +60,5 @@ app.get('/about', async (req: Request, res: Response) => {
   });
 
 });
-
-function secondsLeftBeforeEndOfHour(date: Date) {
-  const m = date.getMinutes();
-  const s = date.getSeconds();
-  return 3600 - (m*60) - s;
-}
 
 exports.app = functions.https.onRequest(app);

@@ -24,11 +24,48 @@ app.get('/api/whoAmI', (req: Request, res: Response) => {
 });
 
 app.post('/api/post', async (req: Request, res: Response) => {
-  console.log(req.body);
+  
+  const FieldValue = admin.firestore.FieldValue;
+  const userRef = firestore.doc('Users/' + req.user?.user_id);
+  
+  const cq = firestore.collection('BlogSettings').doc('Counters');
+  const pc = await cq.get();
+  const postId = pc.data().postCounter + 1;
+  await cq.update({postCounter: FieldValue.increment(1)});
+
   const blogPost: BlogPost = req.body;
-  const result = await firestore.collection('BlogPosts').add(blogPost);
-  console.log('Added document with ID: ', result.id);
-  res.send({id: result.id});
+  blogPost.type = req.body.type? req.body.type: 'BlogPost';
+  blogPost.meta = {
+    createdOn: FieldValue.serverTimestamp(), 
+    updatedOn: FieldValue.serverTimestamp(),
+    publishedOn: FieldValue.serverTimestamp()
+  };
+  blogPost.user = userRef;
+  blogPost.postLink = postId.toString();
+
+  await firestore.collection('BlogPosts').doc(blogPost.postLink).set(blogPost);
+  console.log('Added document with ID: ', postId);
+  res.send({id: postId});
+
+});
+
+app.put('/api/post/:postId', async (req: Request, res: Response) => {
+  
+  const FieldValue = admin.firestore.FieldValue;
+
+  const postUpdateData = {
+    title: req.body.title,
+    content: req.body.content,
+    status: req.body.status,
+    meta: {
+      updatedOn: FieldValue.serverTimestamp(),
+      publishedOn: FieldValue.serverTimestamp()
+    }
+  };
+
+  const postRef = firestore.collection('BlogPosts').doc(req.params.postId);
+  await postRef.update(postUpdateData);
+  res.send({updatedOn: FieldValue.serverTimestamp()});
 
 });
 

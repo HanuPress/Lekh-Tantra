@@ -39,15 +39,11 @@ app.get('/admin/login', async (req: Request, res: Response) => {
 });
 
 app.get('/admin/dashboard', async (req: Request, res: Response) => {
-  const user = admin.auth().currentUser;
-  console.log("== Getting current user ==");
-  console.log(user);
-  console.log("== Request headers ==", req.headers);
-  console.log("== Request cookies ==", req.cookies);
+  //const user = req.user;
   const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
   const blogSettings = blogSettingsQuery.data();
   const adminSettings = {
-    "page": "login"
+    "page": "dashboard"
   };
   res.render('admin/blank', {
     settings: blogSettings,
@@ -55,20 +51,69 @@ app.get('/admin/dashboard', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/admin/postlist', async (req: Request, res: Response) => {
+  //const user = req.user;
+  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
+  const blogSettings = blogSettingsQuery.data();
+
+  const postsQuery = await firestore.collection('BlogPosts').get();
+  const posts: any = [];
+  for (const doc of postsQuery.docs) {
+    const postData = doc.data();
+    postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
+    posts.push({
+      postId: doc.id,
+      title: postData.title,
+      updatedOn: postData.meta.updatedOn.toDate().toLocaleString()
+    });
+  }
+
+  const adminSettings = {
+    "page": "postlist"
+  };
+  res.render('admin/postlist', {
+    settings: blogSettings,
+    adminSettings: adminSettings,
+    posts: posts
+  });
+});
+
 app.get('/admin/newpost', async (req: Request, res: Response) => {
-  const user = admin.auth().currentUser;
-  console.log("== Getting current user ==");
-  console.log(user);
-  console.log("== Request headers ==", req.headers);
-  console.log("== Request cookies ==", req.cookies);
+  
   const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
   const blogSettings = blogSettingsQuery.data();
   const adminSettings = {
-    "page": "login"
+    "page": "newpost"
   };
+  const postData = {title: "", content: ""};
   res.render('admin/createpost', {
     settings: blogSettings,
-    adminSettings: adminSettings
+    adminSettings: adminSettings,
+    postData: postData
+  });
+});
+
+app.get('/admin/edit/:postId', async (req: Request, res: Response) => {
+  
+  const postQuery = await firestore.collection('BlogPosts').doc(req.params.postId).get();
+  const pd = postQuery.data();
+  const postData = {
+    postId: req.params.postId, 
+    title: pd.title, 
+    content: pd.content
+  };
+
+  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
+  const blogSettings = blogSettingsQuery.data();
+
+  const adminSettings = {
+    "page": "editpost"
+  };
+
+  res.render('admin/createpost', {
+    settings: blogSettings,
+    adminSettings: adminSettings,
+    postData: postData
   });
 });
 

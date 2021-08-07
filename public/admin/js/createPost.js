@@ -17,20 +17,40 @@ tinymce.init({
 $(document).ready(function () {
 });
 
-window.publishPost = function () {
-    const myContent = tinymce.activeEditor.getContent();
-    const title = $("#blog_title").val();
-    console.log("Publish post");
-    console.log(title);
-    console.log(myContent);
-};
+window.publishPost = function (postId) {
 
-window.saveDraft = function () {
-    console.log("Save Draft");
     const postData = {
         title: $("#blog_title").val(),
-        content: tinymce.activeEditor.getContent()
+        content: tinymce.activeEditor.getContent(),
+        status: 'Active'
     };
+
+    if(postId){
+        updatePost(postId, postData);
+    }
+    else{
+        createPost(postData);
+    }
+    
+};
+
+window.saveDraft = function (postId) {
+    
+    const postData = {
+        title: $("#blog_title").val(),
+        content: tinymce.activeEditor.getContent(),
+        status: 'Draft'
+    };
+
+    if(postId){
+        updatePost(postId, postData);
+    }
+    else{
+        createPost(postData);
+    }
+};
+
+function createPost(postData){
 
     $.ajax({
         "url": "/api/post",
@@ -47,4 +67,24 @@ window.saveDraft = function () {
             //called when complete
         }
     });
-};
+
+}
+
+function updatePost(postId, postData){
+    
+    $.ajax({
+        "url": "/api/post/" + postId,
+        method: 'PUT',
+        data: JSON.stringify(postData),
+        contentType: "application/json",
+        success: function () {
+            console.log("Post updated");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log({ status: textStatus, error_message: jqXHR.responseText });
+        },
+        complete: function() {
+            //called when complete
+        }
+    });
+}
