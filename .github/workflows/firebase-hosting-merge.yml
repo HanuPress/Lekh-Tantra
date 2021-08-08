@@ -22,5 +22,5 @@ jobs:
         with:
           args: deploy --only functions
         env:
-          GCP_SA_KEY: '${{ secrets.FIREBASE_TOKEN }}'
+          FIREBASE_TOKEN: '${{ secrets.FIREBASE_TOKEN }}'
           PROJECT_ID: lekh-tantra-dev
