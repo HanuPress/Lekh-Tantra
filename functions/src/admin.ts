@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { BlogPost } from '../types/lekhtantra';
 import { validateFirebaseIdToken } from './firebaseValidator';
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -38,10 +39,95 @@ app.get('/admin/login', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/admin/setup', async (req: Request, res: Response) => {
+  
+  const userQuery = await firestore.collection('Users').get();
+  if(userQuery.docs.length > 0){
+    // We have some users setup.
+    res.redirect('/admin/dashboard')
+    return;
+  }
+
+  // Show the page for Blog Setup
+  const blogSettings = {};
+  const adminSettings = {
+    "page": "setup"
+  };
+  res.render('admin/setup', {
+    layout: false,
+    settings: blogSettings,
+    adminSettings: adminSettings
+  });
+});
+
+app.post('/admin/setup', async (req: Request, res: Response) => {
+  /**
+   * Setup the Blog.
+   * Create default collections
+   */
+  
+  const FieldValue = admin.firestore.FieldValue;
+  
+  // Setup Users
+  const adminUser = {
+    displayName: req.user?.name,
+    socialMedia: {
+      twitter: "",
+      facebook: "",
+      github: ""
+    }
+  }
+  await firestore.collection('Users').doc(req.user?.user_id).set(adminUser);
+  const userRef = firestore.doc('Users/' + req.user?.user_id);
+
+  const blogSettings = {
+    blogName: req.body.blogname,
+    copyRightInfo: req.body.blogname,
+    socialMedia: {
+      twitter: "",
+      facebook: "",
+      github: ""
+    }
+  }
+  await firestore.collection('BlogSettings').doc('Settings').set(blogSettings);
+
+  const counters = {
+    postCounter: 0
+  }
+  await firestore.collection('BlogSettings').doc('Counters').set(counters);
+  
+  // Setup About Me.
+  const aboutMe: BlogPost = {
+    title: "About Me",
+    content: "My name is " + req.user?.name,
+    meta: {
+      createdOn: FieldValue.serverTimestamp(), 
+      updatedOn: FieldValue.serverTimestamp(),
+      publishedOn: FieldValue.serverTimestamp()
+    },
+    type: "Page",
+    status: "Draft",
+    postLink: "about",
+    user: userRef
+  };
+  await firestore.collection('BlogPosts').doc('AboutMe').set(aboutMe);
+
+  //res.send(req.body);
+  res.redirect('/admin/dashboard')
+  return;
+});
+
 app.get('/admin/dashboard', async (req: Request, res: Response) => {
   //const user = req.user;
   const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
   const blogSettings = blogSettingsQuery.data();
+
+  if(!blogSettings){
+    // Blog is not setup..
+    res.redirect('/admin/setup')
+    return;
+  }
+
   const adminSettings = {
     "page": "dashboard"
   };

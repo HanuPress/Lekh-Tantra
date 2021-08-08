@@ -22,6 +22,12 @@ app.get('/', async (req: Request, res: Response) => {
  
   const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
   const blogSettings = blogSettingsQuery.data();
+
+  if(!blogSettings){
+    // Blog is not setup..
+    res.redirect('/admin/setup')
+    return;
+  }
   
   const postsQuery = await firestore.collection('BlogPosts').where('type', '==', 'BlogPost').get();
   const posts: any = [];
@@ -34,6 +40,35 @@ app.get('/', async (req: Request, res: Response) => {
     postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
     posts.push(postData);
   }
+  //console.log(posts);
+  res.render('blog/postlist', {
+    settings: blogSettings,
+    posts: posts
+  });
+
+});
+
+app.get('/post/:postId', async (req: Request, res: Response) => {
+ 
+  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
+  const blogSettings = blogSettingsQuery.data();
+
+  if(!blogSettings){
+    // Blog is not setup..
+    res.redirect('/admin/setup')
+    return;
+  }
+  
+  const postsQuery = await firestore.collection('BlogPosts').doc(req.params.postId).get();
+  const posts: any = [];
+  const postData = postsQuery.data();
+  if(postData.user){
+    const uq = await postData.user.get()
+    postData.user = uq.data();
+  }
+  postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
+  posts.push(postData);
+
   //console.log(posts);
   res.render('blog/postlist', {
     settings: blogSettings,

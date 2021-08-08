@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{> header }}
+  </head>
+
+  <body class="hold-transition register-page">
+    <div class="register-box">
+      <div class="register-logo">
+        <a href="/">LekhTanta</a>
+      </div>
+      <div class="card">
+        <div class="card-body register-card-body">
+          <p class="login-box-msg">Setup your Blog!</p>
+          <form action="/admin/setup" method="post">
+          <div class="input-group mb-3">
+            <input type="text" name="blogname" class="form-control" placeholder="Blog Name">
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fab fa-blogger"></span>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Submit</button>
+          </form>
+          
+        </div>
+        <!-- /.register-card-body -->
+      </div>
+    </div>
+    <!-- Footer-->
+    {{> footer_scripts }}
+  </body>
+</html>

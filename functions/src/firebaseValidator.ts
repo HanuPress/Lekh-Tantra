@@ -15,9 +15,9 @@ const admin = require('firebase-admin');
  */
 export async function validateFirebaseIdToken(req: Request, res: Response, next: any) {
 
-    if(req.path === '/admin/login'){
-        next();
-        return;
+    if(['/admin/login'].includes(req.path)){
+      next();
+      return;
     }
     
     functions.logger.log('Check if request is authorized with Firebase ID token');
