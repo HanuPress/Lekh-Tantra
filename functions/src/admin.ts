@@ -12,9 +12,11 @@ const exphbs = require('express-handlebars');
 const cookieParser = require('cookie-parser')();
 
 const app = express();
+let blogSettings = {};
 
 app.use(cookieParser);
 app.use(validateFirebaseIdToken);
+app.use(checkSetup);
 
 const hbsConfig = {
   defaultLayout: 'admin', 
@@ -66,6 +68,18 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
    * Create default collections
    */
   
+  // Double check if an admin user exists
+  const userQuery = await firestore.collection('Users').get();
+  if(userQuery.docs.length > 0){
+    // We have some users setup.
+    res.redirect('/admin/dashboard')
+    return;
+  }
+  else{
+    // We dont have any users... so this is admin user setting up the blog.
+    await admin.auth().setCustomUserClaims(req.user?.user_id, { admin: true });
+  }
+
   const FieldValue = admin.firestore.FieldValue;
   
   // Setup Users
@@ -118,29 +132,17 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
 });
 
 app.get('/admin/dashboard', async (req: Request, res: Response) => {
-  //const user = req.user;
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
-
-  if(!blogSettings){
-    // Blog is not setup..
-    res.redirect('/admin/setup')
-    return;
-  }
 
   const adminSettings = {
     "page": "dashboard"
   };
-  res.render('admin/blank', {
+  res.render('admin/dashboard', {
     settings: blogSettings,
     adminSettings: adminSettings
   });
 });
 
 app.get('/admin/postlist', async (req: Request, res: Response) => {
-  //const user = req.user;
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
 
   const postsQuery = await firestore.collection('BlogPosts').get();
   const posts: any = [];
@@ -166,8 +168,6 @@ app.get('/admin/postlist', async (req: Request, res: Response) => {
 
 app.get('/admin/newpost', async (req: Request, res: Response) => {
   
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
   const adminSettings = {
     "page": "newpost"
   };
@@ -189,9 +189,6 @@ app.get('/admin/edit/:postId', async (req: Request, res: Response) => {
     content: pd.content
   };
 
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
-
   const adminSettings = {
     "page": "editpost"
   };
@@ -202,5 +199,41 @@ app.get('/admin/edit/:postId', async (req: Request, res: Response) => {
     postData: postData
   });
 });
+
+app.get('/admin/settings', async (req: Request, res: Response) => {
+
+  const adminSettings = {
+    "page": "settings"
+  };
+  res.render('admin/settings', {
+    settings: blogSettings,
+    adminSettings: adminSettings
+  });
+});
+
+async function checkSetup(req: Request, res: Response, next: any){
+
+  if(['/admin/login', '/admin/setup'].includes(req.path)){
+    next();
+    return;
+  }
+
+  if(!req.user?.admin){
+    res.status(403).send('Unauthorized');
+    return;
+  }
+
+  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
+  blogSettings = blogSettingsQuery.data();
+
+  if(!blogSettings){
+    // Blog is not setup..
+    res.redirect('/admin/setup');
+    return;
+  }
+
+  next();
+
+}
 
 exports.admin = functions.https.onRequest(app);

@@ -69,4 +69,19 @@ app.put('/api/post/:postId', async (req: Request, res: Response) => {
 
 });
 
+app.put('/api/settings', async (req: Request, res: Response) => {
+  
+  const FieldValue = admin.firestore.FieldValue;
+
+  const settingsUpdateData = {
+    blogName: req.body.blogName,
+    copyRightInfo: req.body.copyRightInfo
+  };
+
+  const settingsRef = firestore.collection('BlogSettings').doc('Settings');
+  await settingsRef.update(settingsUpdateData);
+  res.send({updatedOn: FieldValue.serverTimestamp()});
+
+});
+
 exports.api = functions.https.onRequest(app);

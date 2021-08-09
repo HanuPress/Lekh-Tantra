@@ -1,0 +1,65 @@
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Settings</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item active">Settings Page</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+
+    <!-- Default box -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Blog Settings</h3>
+
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+          <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <form class="form-horizontal">
+        <div class="card-body">
+          <div class="form-group row">
+            <label for="blog_name" class="col-sm-2 col-form-label">Blog Name</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="blog_name" placeholder="Blog Name" value="{{settings.blogName}}">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="copyright_info" class="col-sm-2 col-form-label">Copyright Info</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="copyright_info" placeholder="Copyright Info" value="{{settings.copyRightInfo}}">
+            </div>
+          </div>
+        </div>
+      </form>
+      <!-- /.card-body -->
+      <div class="card-footer">
+        <button type="button" id="save-settings" class="btn btn-info" onclick="saveSettings();">Save</button>
+      </div>
+      <!-- /.card-footer-->
+    </div>
+    <!-- /.card -->
+
+  </section>
+  <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+<script src="/admin/js/settings.js"></script>

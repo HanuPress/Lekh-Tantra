@@ -4,11 +4,11 @@ tinymce.init({
     menubar: false,
     plugins: [
       'advlist autolink lists link image charmap print preview anchor',
-      'searchreplace visualblocks code fullscreen',
+      'textcolor, searchreplace visualblocks code fullscreen',
       'insertdatetime media table paste code help wordcount'
     ],
     toolbar: 'undo redo | formatselect | ' +
-    'bold italic backcolor | alignleft aligncenter ' +
+    'bold italic forecolor backcolor | alignleft aligncenter ' +
     'alignright alignjustify | bullist numlist outdent indent | ' +
     'removeformat | help',
     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
@@ -19,6 +19,8 @@ $(document).ready(function () {
 
 window.publishPost = function (postId) {
 
+    _buttonToggleDisable(true);
+
     const postData = {
         title: $("#blog_title").val(),
         content: tinymce.activeEditor.getContent(),
@@ -26,15 +28,17 @@ window.publishPost = function (postId) {
     };
 
     if(postId){
-        updatePost(postId, postData);
+        _updatePost(postId, postData);
     }
     else{
-        createPost(postData);
+        _createPost(postData);
     }
     
 };
 
 window.saveDraft = function (postId) {
+    
+    _buttonToggleDisable(true);
     
     const postData = {
         title: $("#blog_title").val(),
@@ -43,34 +47,35 @@ window.saveDraft = function (postId) {
     };
 
     if(postId){
-        updatePost(postId, postData);
+        _updatePost(postId, postData);
     }
     else{
-        createPost(postData);
+        _createPost(postData);
     }
 };
 
-function createPost(postData){
+function _createPost(postData){
 
     $.ajax({
         "url": "/api/post",
         method: 'POST',
         data: JSON.stringify(postData),
         contentType: "application/json",
-        success: function () {
+        success: function (data) {
             console.log("Post created");
+            window.location.href = "/admin/edit/" + data.id;
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log({ status: textStatus, error_message: jqXHR.responseText });
         },
         complete: function() {
-            //called when complete
+            _buttonToggleDisable(false);
         }
     });
 
 }
 
-function updatePost(postId, postData){
+function _updatePost(postId, postData){
     
     $.ajax({
         "url": "/api/post/" + postId,
@@ -84,7 +89,13 @@ function updatePost(postId, postData){
             console.log({ status: textStatus, error_message: jqXHR.responseText });
         },
         complete: function() {
-            //called when complete
+            _buttonToggleDisable(false);
         }
     });
+}
+
+function _buttonToggleDisable(disabled){
+
+    $("#save-draft").prop('disabled', disabled);
+    $("#publish-post").prop('disabled', disabled);
 }
