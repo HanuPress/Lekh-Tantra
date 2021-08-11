@@ -75,24 +75,34 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
     res.redirect('/admin/dashboard')
     return;
   }
-  else{
-    // We dont have any users... so this is admin user setting up the blog.
-    await admin.auth().setCustomUserClaims(req.user?.user_id, { admin: true });
-  }
+
+  // We dont have any users... so this is admin user setting up the blog. Create this user.
+  const userRecord = await admin.auth().createUser({
+    email: req.body.admin_email,
+    password: req.body.password,
+    emailVerified: false,
+    displayName: req.body.display_name
+  });
+
+  // Assign admin role.
+  await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
+
+  // Send verification email
+  //await admin.auth().sendEmailVerification();
 
   const FieldValue = admin.firestore.FieldValue;
   
   // Setup Users
   const adminUser = {
-    displayName: req.user?.name,
+    displayName: userRecord.displayName,
     socialMedia: {
       twitter: "",
       facebook: "",
       github: ""
     }
   }
-  await firestore.collection('Users').doc(req.user?.user_id).set(adminUser);
-  const userRef = firestore.doc('Users/' + req.user?.user_id);
+  await firestore.collection('Users').doc(userRecord.uid).set(adminUser);
+  const userRef = firestore.doc('Users/' + userRecord.uid);
 
   const blogSettings = {
     blogName: req.body.blogname,
@@ -113,7 +123,7 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
   // Setup About Me.
   const aboutMe: BlogPost = {
     title: "About Me",
-    content: "My name is " + req.user?.name,
+    content: "My name is " + userRecord.displayName,
     meta: {
       createdOn: FieldValue.serverTimestamp(), 
       updatedOn: FieldValue.serverTimestamp(),
@@ -126,8 +136,41 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
   };
   await firestore.collection('BlogPosts').doc('AboutMe').set(aboutMe);
 
+  // Setup Terms and conditions Me.
+  const tnc: BlogPost = {
+    title: "Terms and Conditions",
+    content: "Terms and Conditions",
+    meta: {
+      createdOn: FieldValue.serverTimestamp(), 
+      updatedOn: FieldValue.serverTimestamp(),
+      publishedOn: FieldValue.serverTimestamp()
+    },
+    type: "Page",
+    status: "Draft",
+    postLink: "tnc",
+    user: userRef
+  };
+  await firestore.collection('BlogPosts').doc('tnc').set(tnc);
+
+  // Setup About Me.
+  const privacy: BlogPost = {
+    title: "Privacy",
+    content: "Privacy settings",
+    meta: {
+      createdOn: FieldValue.serverTimestamp(), 
+      updatedOn: FieldValue.serverTimestamp(),
+      publishedOn: FieldValue.serverTimestamp()
+    },
+    type: "Page",
+    status: "Draft",
+    postLink: "privacy",
+    user: userRef
+  };
+  await firestore.collection('BlogPosts').doc('privacy').set(privacy);
+
   //res.send(req.body);
-  res.redirect('/admin/dashboard')
+  //await admin.auth().signOut();
+  res.redirect('/admin/login')
   return;
 });
 
@@ -218,10 +261,10 @@ async function checkSetup(req: Request, res: Response, next: any){
     return;
   }
 
-  if(!req.user?.admin){
-    res.status(403).send('Unauthorized');
-    return;
-  }
+  // if(!req.user?.admin){
+  //   res.status(403).send('Unauthorized');
+  //   return;
+  // }
 
   const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
   blogSettings = blogSettingsQuery.data();

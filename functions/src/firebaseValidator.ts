@@ -15,7 +15,7 @@ const admin = require('firebase-admin');
  */
 export async function validateFirebaseIdToken(req: Request, res: Response, next: any) {
 
-    if(['/admin/login'].includes(req.path)){
+    if(['/admin/login','/admin/setup'].includes(req.path)){
       next();
       return;
     }
@@ -58,7 +58,7 @@ export async function validateFirebaseIdToken(req: Request, res: Response, next:
       return;
     } catch (error) {
       functions.logger.error('Error while verifying Firebase ID token:', error);
-      res.status(403).send('Unauthorized');
+      res.redirect('/admin/login')
       return;
     }
 };

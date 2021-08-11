@@ -7,9 +7,10 @@
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         // User is logged in.
-        console.log(user.photoURL);console.log(user.displayName);
         $(".user_name").text(user.displayName);
-        $(".user_image_url").attr("src", user.photoURL);
+        if(user.photoURL){
+          $(".user_image_url").attr("src", user.photoURL);
+        }
       } else {
         // User is not logged in
         console.log("User is not logged in");
