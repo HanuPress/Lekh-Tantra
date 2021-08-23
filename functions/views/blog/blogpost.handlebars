@@ -2,9 +2,10 @@
 <html>
   <head>
     {{> header }}
-    
+
     <meta name="description" content="{{settings.aboutBlog}}"/>
-    <title>{{settings.blogName}}</title>
+    <meta name="author" content="{{post.user.displayName}}"/>
+    <title>{{post.title}}</title>
   </head>
   <body>
     <!-- Navigation-->
@@ -25,26 +26,24 @@
     <!-- Main Content-->
     <div class="container px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
-        <div class="col-md-10 col-lg-8 col-xl-7">
-            <!-- Post preview-->
-            {{#each posts}}
-                <div class="post-preview">
-                    <a href="/post/{{this.postLink}}">
-                        <h2 class="post-title">{{this.title}}</h2>
-                    </a>
-                    <p>{{{this.content}}}</p>
-                    <p class="post-meta">
-                        Posted by <a href="{{this.user.username}}">{{this.user.displayName}}</a>
-                        on {{this.meta.publishedOn}}
-                    </p>
-                </div>
-                <!-- Divider-->
-                <hr class="my-4" />
-            {{/each}}
-            
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <!-- Post preview-->
+        <div class="post-preview">
+          <a href="/post/{{post.postLink}}">
+              <h2 class="post-title">{{post.title}}</h2>
+          </a>
+          <p>{{{post.content}}}</p>
+          <p class="post-meta">
+              Posted by <a href="{{post.user.username}}">{{post.user.displayName}}</a>
+              on {{post.meta.publishedOn}}
+          </p>
         </div>
+        <!-- Divider-->
+        <hr class="my-4" />
+      </div>
     </div>
     </div>
+    {{{body}}}
     <!-- Main Content Ends here-->
     <!-- Footer-->
     {{> footer }}

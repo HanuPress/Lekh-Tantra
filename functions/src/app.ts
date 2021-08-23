@@ -7,7 +7,7 @@ admin.initializeApp();
 const express = require('express');
 const exphbs = require('express-handlebars');
 const app = express();
-let blogSettings = {};
+let blogSettings: any = {};
 
 const hbsConfig = {
   defaultLayout: 'main', 
@@ -21,15 +21,6 @@ app.use(checkSetup);
 const firestore = admin.firestore();
 
 app.get('/', async (req: Request, res: Response) => {
- 
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
-
-  if(!blogSettings){
-    // Blog is not setup..
-    res.redirect('/admin/setup')
-    return;
-  }
   
   const postsQuery = await firestore.collection('BlogPosts').where('type', '==', 'BlogPost').get();
   const posts: any = [];
@@ -44,6 +35,7 @@ app.get('/', async (req: Request, res: Response) => {
   }
   //console.log(posts);
   res.render('blog/postlist', {
+    layout: false,
     settings: blogSettings,
     posts: posts
   });
@@ -51,49 +43,41 @@ app.get('/', async (req: Request, res: Response) => {
 });
 
 app.get('/post/:postId', async (req: Request, res: Response) => {
- 
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
-
-  if(!blogSettings){
-    // Blog is not setup..
-    res.redirect('/admin/setup')
-    return;
-  }
   
   const postsQuery = await firestore.collection('BlogPosts').doc(req.params.postId).get();
-  const posts: any = [];
   const postData = postsQuery.data();
   if(postData.user){
     const uq = await postData.user.get()
     postData.user = uq.data();
   }
   postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
-  posts.push(postData);
 
   //console.log(posts);
-  res.render('blog/postlist', {
+  res.render('blog/blogpost', {
+    layout: false,
     settings: blogSettings,
-    posts: posts
+    post: postData
   });
 
 });
 
-app.get('/about', async (req: Request, res: Response) => {
-  
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
-  
-  const aboutMeQuery = await firestore.collection('BlogPosts').doc('AboutMe').get();
-  const aboutMe = aboutMeQuery.data();
+app.get('/page/:postId', async (req: Request, res: Response) => {
+    
+  const postsQuery = await firestore.collection('BlogPosts').doc(req.params.postId).get();
+  const postData = postsQuery.data();
+  if(postData.user){
+    const uq = await postData.user.get()
+    postData.user = uq.data();
+  }
+  postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
 
   const now = new Date();
   blogSettings.currentYear = now.getFullYear();
     
-  res.render('blog/about', {
+  res.render('blog/blogpage', {
     layout: false,
     settings: blogSettings,
-    aboutMe: aboutMe
+    post: postData
   });
 
 });
@@ -108,6 +92,9 @@ async function checkSetup(req: Request, res: Response, next: any){
     res.redirect('/admin/setup');
     return;
   }
+
+  const now = new Date();
+  blogSettings.currentYear = now.getFullYear();
 
   next();
 

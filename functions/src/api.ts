@@ -15,7 +15,7 @@ const app = express();
 
 app.use(cookieParser);
 app.use(validateFirebaseIdToken);
-app.use(express.json())
+app.use(express.json());
 
 const firestore = admin.firestore();
 
@@ -75,6 +75,7 @@ app.put('/api/settings', async (req: Request, res: Response) => {
 
   const settingsUpdateData = {
     blogName: req.body.blogName,
+    aboutBlog: req.body.aboutBlog,
     copyRightInfo: req.body.copyRightInfo
   };
 

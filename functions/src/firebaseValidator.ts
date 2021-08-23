@@ -52,7 +52,8 @@ export async function validateFirebaseIdToken(req: Request, res: Response, next:
   
     try {
       const decodedIdToken: any = await admin.auth().verifyIdToken(idToken);
-      functions.logger.log('ID Token correctly decoded', decodedIdToken);
+      //functions.logger.log('ID Token correctly decoded', decodedIdToken);
+      //console.log("Decoded ID Token: ",  decodedIdToken);
       req.user = decodedIdToken;
       next();
       return;

@@ -7,11 +7,12 @@ tinymce.init({
       'textcolor, searchreplace visualblocks code fullscreen',
       'insertdatetime media table paste code help wordcount'
     ],
-    toolbar: 'undo redo | formatselect | ' +
+    toolbar: 'undo redo | formatselect | image | ' +
     'bold italic forecolor backcolor | alignleft aligncenter ' +
     'alignright alignjustify | bullist numlist outdent indent | ' +
     'removeformat | help',
-    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+    file_picker_types: 'image'
 });
 
 $(document).ready(function () {

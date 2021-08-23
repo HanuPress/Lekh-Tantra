@@ -19,10 +19,10 @@
         // tosUrl and privacyPolicyUrl accept either url string or a callback
         // function.
         // Terms of service url/callback.
-        tosUrl: '/tos',
+        tosUrl: '/page/tnc',
         // Privacy policy url/callback.
         privacyPolicyUrl: function() {
-          window.location.assign('/privacy');
+          window.location.assign('/page/privacy');
         }
       };
 
@@ -37,7 +37,7 @@
           console.log(user.displayName);
           firebase.auth().currentUser.getIdToken(true).then(function(token) {
             console.log("--- Setting cookiee --- ", user.email);
-            document.cookie = '__session=' + token + '; path=/';
+            document.cookie = '__session=' + token + ';max-age=3600; path=/';
           });
           
         } else {

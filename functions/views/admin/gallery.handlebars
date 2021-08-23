@@ -1,0 +1,58 @@
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Gallery</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item active">Gallery</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+
+    <!-- Default box -->
+    <div class="card">
+      <div class="card-header">
+        <form action="/upload/file" class="dropzone dz-clickable" id="fileuploadzone">
+          <div class="dz-default dz-message">
+            <button class="dz-button" type="button">Drop files here to upload</button>
+          </div>
+        </form>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {{#each fileList}}
+            <div class="col-md-2">
+              <figure>
+                <img class="gallery-image" src="{{{this.url}}}" alt="{{{this.fileName}}}" style="width:180px;height:180px;">
+                <figcaption class="text-center">{{{this.fileName}}}</figcaption>
+                <button class="copy-image-link-button btn btn-block btn-info btn-sm swalDefaultSuccess" type="button">Copy Link</button>
+              </figure>
+            </div>
+            {{{this.postId}}}
+          {{/each}}
+        </div>
+      </div>
+      <!-- /.card-body -->
+      <div class="card-footer">
+      </div>
+      <!-- /.card-footer-->
+    </div>
+    <!-- /.card -->
+
+  </section>
+  <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+<script src="https://cdn.jsdelivr.net/npm/dropzone@5.9.2/dist/dropzone.min.js"></script>
+<script src="/admin/js/gallery.js"></script>

@@ -7,6 +7,7 @@ window.saveSettings = function (postId) {
 
     const settingsData = {
         blogName: $("#blog_name").val(),
+        aboutBlog: $("#about_blog").val(),
         copyRightInfo: $("#copyright_info").val()
     };
 

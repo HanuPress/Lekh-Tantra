@@ -32,6 +32,9 @@ You can test locally before deploying.
 - Install Firebase CLI
 - Create a Firebase Account
 - Create a Firebase Project.
+- Go to the Firebase Database and select your preferred location for DB
+- Go to Autentication and enable email / password based authentication
+- Enable Blaze Plan --- this is required as functions can be deployed only on this plan. Don't worry you wont be charged.
 
 **Run local**
 

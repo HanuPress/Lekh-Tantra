@@ -18,6 +18,7 @@ declare namespace Express {
             iss: String
             sub: String
             uid: String
-        }
+        },
+        files?: any
     }
 }

@@ -12,7 +12,7 @@ const exphbs = require('express-handlebars');
 const cookieParser = require('cookie-parser')();
 
 const app = express();
-let blogSettings = {};
+let blogSettings: any = {};
 
 app.use(cookieParser);
 app.use(validateFirebaseIdToken);
@@ -29,8 +29,6 @@ app.set('view engine', 'handlebars');
 const firestore = admin.firestore();
 
 app.get('/admin/login', async (req: Request, res: Response) => {
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  const blogSettings = blogSettingsQuery.data();
   const adminSettings = {
     "page": "login"
   };
@@ -51,7 +49,7 @@ app.get('/admin/setup', async (req: Request, res: Response) => {
   }
 
   // Show the page for Blog Setup
-  const blogSettings = {};
+  blogSettings = {};
   const adminSettings = {
     "page": "setup"
   };
@@ -254,26 +252,57 @@ app.get('/admin/settings', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/admin/gallery', async (req: Request, res: Response) => {
+
+  const storage = admin.storage();
+  const defaultBucket = storage.bucket();
+  console.log("Bucket: ", defaultBucket.name);
+
+  const fileList: any = [];
+
+  const [files] = await defaultBucket.getFiles({prefix: "uploads/", delimiter: "/"});
+  for (const file of files) {
+    const [metadata] = await file.getMetadata();
+    if(metadata.contentType.substring(0,5) === 'image'){
+      fileList.push({
+        fileName: file.name.replace("uploads/", ""),
+        url: file.publicUrl()
+      });
+    }
+  }
+  
+  const adminSettings = {
+    "page": "gallery"
+  };
+  res.render('admin/gallery', {
+    fileList: fileList,
+    adminSettings: adminSettings
+  });
+});
+
 async function checkSetup(req: Request, res: Response, next: any){
+
+  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
+  blogSettings = blogSettingsQuery.data();
 
   if(['/admin/login', '/admin/setup'].includes(req.path)){
     next();
     return;
   }
 
-  // if(!req.user?.admin){
-  //   res.status(403).send('Unauthorized');
-  //   return;
-  // }
-
-  const blogSettingsQuery = await firestore.collection('BlogSettings').doc('Settings').get();
-  blogSettings = blogSettingsQuery.data();
+  if(!req.user?.admin){
+    res.status(403).send('Unauthorized');
+    return;
+  }
 
   if(!blogSettings){
     // Blog is not setup..
     res.redirect('/admin/setup');
     return;
   }
+
+  const now = new Date();
+  blogSettings.currentYear = now.getFullYear();
 
   next();
 
