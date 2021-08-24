@@ -166,10 +166,57 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
   };
   await firestore.collection('BlogPosts').doc('privacy').set(privacy);
 
-  //res.send(req.body);
-  //await admin.auth().signOut();
+  // Make the default bucket as public
+  const storage = admin.storage();
+  const bucket = storage.bucket();
+  await bucket.makePublic();
+
   res.redirect('/admin/login')
   return;
+});
+
+app.get('/admin/upgrade', async (req: Request, res: Response) => {
+  
+  const adminSettings = {
+    "page": "upgrade"
+  };
+  res.render('admin/upgrade', {
+    settings: blogSettings,
+    adminSettings: adminSettings
+  });
+});
+
+app.post('/admin/upgrade', async (req: Request, res: Response) => {
+  /**
+   * Upgrade the Blog.
+   */
+
+  if(!blogSettings.upgradeRequired){
+    res.send("Upgrade not required");
+    return;
+  }
+
+  if (blogSettings.currentVersion.code === 1) {
+    // Upgrade from Version 1
+    // Make the default bucket as public
+    const storage = admin.storage();
+    const bucket = storage.bucket();
+
+    try {
+
+      await bucket.makePublic();
+      const settingsRef = firestore.collection('BlogSettings').doc('Settings');
+      await settingsRef.update({"currentVersion": blogSettings.newVersion});
+      res.redirect('/admin/dashboard')
+      return;
+      
+    } catch (error) {
+      console.log("Error when giving public access: ", error);
+      res.send("Upgrade failed!");
+      return;
+    }
+  }
+  
 });
 
 app.get('/admin/dashboard', async (req: Request, res: Response) => {
@@ -303,6 +350,10 @@ async function checkSetup(req: Request, res: Response, next: any){
 
   const now = new Date();
   blogSettings.currentYear = now.getFullYear();
+  blogSettings.newVersion = {"code":2, "version":"Aplha2"};
+  if (blogSettings.newVersion.code > blogSettings.currentVersion.code) {
+    blogSettings.upgradeRequired = true;
+  }
 
   next();
 

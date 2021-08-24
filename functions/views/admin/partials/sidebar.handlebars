@@ -63,6 +63,16 @@
                 </p>
             </a>
         </li>
+        {{#if settings.upgradeRequired}}
+        <li class="nav-item">
+            <a href="/admin/upgrade" class="nav-link">
+                <i class="nav-icon fas fa-download"></i>
+                <p>
+                Upgrade
+                </p>
+            </a>
+        </li>
+        {{/if}}
     </ul>
     </nav>
     <!-- /.sidebar-menu -->
