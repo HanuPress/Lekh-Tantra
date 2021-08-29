@@ -17,7 +17,7 @@ app.use(cookieParser);
 app.use(validateFirebaseIdToken);
 app.use(fileParser)
 
-app.post('/upload/file', async (req: Request, res: Response) => {
+app.post('/file/upload', async (req: Request, res: Response) => {
 
   const storage = admin.storage();
   const bucket = storage.bucket();
@@ -34,4 +34,22 @@ app.post('/upload/file', async (req: Request, res: Response) => {
 
 });
 
-exports.upload = functions.https.onRequest(app);
+app.post('/file/delete', async (req: Request, res: Response) => {
+
+  const storage = admin.storage();
+  const bucket = storage.bucket();
+
+  const files: String[] = req.body;
+  for await (const file of files) {
+    const parts = file.split('/'); // split the url by /
+    const fileName = parts[parts.length - 1];
+    //const fileRef = storage.refFromURL(file);
+    const fileRef = bucket.file("uploads/" + fileName);
+    await fileRef.delete();
+  }
+  
+  res.send("Files deleted");
+
+});
+
+exports.file = functions.https.onRequest(app);

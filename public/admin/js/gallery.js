@@ -11,7 +11,7 @@ Dropzone.options.fileuploadzone = {
 
 $('.copy-image-link-button').click(function(){
 
-    const imgURL = $(this).parent().find('.gallery-image').attr("src");
+    const imgURL = $(this).parent().parent().parent().find('.gallery-image').attr("src");
     //const imgURL = $(this).attr("src");
     console.log(imgURL);
 
@@ -31,5 +31,29 @@ $('.copy-image-link-button').click(function(){
         showConfirmButton: false,
         toast: true,
         timer: 1500
+    });
+});
+
+$('.delete-image-button').click(function(){
+
+    const imgURL = $(this).parent().parent().parent().find('.gallery-image').attr("src");
+    //const imgURL = $(this).attr("src");
+    console.log(imgURL);
+    const files = [imgURL];
+
+    $.ajax({
+        "url": "/file/delete",
+        method: 'POST',
+        data: JSON.stringify(files),
+        contentType: "application/json",
+        success: function (data) {
+            console.log("File deleted");
+            location.reload();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log({ status: textStatus, error_message: jqXHR.responseText });
+        },
+        complete: function() {
+        }
     });
 });

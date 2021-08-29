@@ -23,7 +23,7 @@
     <!-- Default box -->
     <div class="card">
       <div class="card-header">
-        <form action="/upload/file" class="dropzone dz-clickable" id="fileuploadzone">
+        <form action="/file/upload" class="dropzone dz-clickable" id="fileuploadzone">
           <div class="dz-default dz-message">
             <button class="dz-button" type="button">Drop files here to upload</button>
           </div>
@@ -33,11 +33,24 @@
         <div class="row">
           {{#each fileList}}
             <div class="col-md-2">
-              <figure>
-                <img class="gallery-image" src="{{{this.url}}}" alt="{{{this.fileName}}}" style="width:180px;height:180px;">
-                <figcaption class="text-center">{{{this.fileName}}}</figcaption>
-                <button class="copy-image-link-button btn btn-block btn-info btn-sm swalDefaultSuccess" type="button">Copy Link</button>
-              </figure>
+              <div class="row">
+                <figure>
+                  <img class="gallery-image" src="{{{this.url}}}" alt="{{{this.fileName}}}" style="width:180px;height:180px;">
+                  <figcaption class="text-center">{{{this.fileName}}}</figcaption>
+                </figure>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <button class="copy-image-link-button btn btn-block btn-info btn-sm swalDefaultSuccess" type="button">
+                    <i class="fas fa-link"></i>
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <button class="delete-image-button btn btn-block btn-success btn-sm swalDefaultSuccess" type="button">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
             </div>
             {{{this.postId}}}
           {{/each}}

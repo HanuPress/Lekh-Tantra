@@ -16,8 +16,8 @@
         "function": "api"
       },
       {
-        "source": "/upload{,/**}",
-        "function": "upload"
+        "source": "/file{,/**}",
+        "function": "file"
       },
       {
         "source": "**",

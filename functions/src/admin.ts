@@ -322,6 +322,7 @@ app.get('/admin/gallery', async (req: Request, res: Response) => {
     "page": "gallery"
   };
   res.render('admin/gallery', {
+    settings: blogSettings,
     fileList: fileList,
     adminSettings: adminSettings
   });
