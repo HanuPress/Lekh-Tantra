@@ -1,3 +1,4 @@
+/* eslint-disable */
 const functions = require('firebase-functions');
 import { Request, Response } from 'express';
 const admin = require('firebase-admin');

@@ -1,4 +1,7 @@
+/* eslint-disable */
 import { Request, Response } from 'express';
+import { jugnu } from '@fire-fly/jugnu';
+import { BlogPost } from "./model/BlogPost";
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -20,19 +23,18 @@ app.use(checkSetup);
 
 const firestore = admin.firestore();
 
+jugnu.initialize({});
+
 app.get('/', async (req: Request, res: Response) => {
-  
-  const postsQuery = await firestore.collection('BlogPosts').where('type', '==', 'BlogPost').get();
-  const posts: any = [];
-  for (const doc of postsQuery.docs) {
-    const postData = doc.data();
-    if(postData.user){
-      const uq = await postData.user.get()
-      postData.user = uq.data();
-    }
+
+  const postCollection = jugnu.createFirebaseCollection(BlogPost);
+
+  let posts: BlogPost[];
+  posts = await postCollection.query([{field:'type', condition:'==',value:'BlogPost'}]);
+  posts.forEach(postData => {
     postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
-    posts.push(postData);
-  }
+  });
+  
   //console.log(posts);
   res.render('blog/postlist', {
     layout: false,
@@ -44,15 +46,13 @@ app.get('/', async (req: Request, res: Response) => {
 
 app.get('/post/:postId', async (req: Request, res: Response) => {
   
-  const postsQuery = await firestore.collection('BlogPosts').doc(req.params.postId).get();
-  const postData = postsQuery.data();
-  if(postData.user){
-    const uq = await postData.user.get()
-    postData.user = uq.data();
-  }
+  const postId: string = req.params.postId;
+  const postCollection = jugnu.createFirebaseCollection(BlogPost);
+
+  let postData: BlogPost;
+  postData = await postCollection.getDocument(postId);
   postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
 
-  //console.log(posts);
   res.render('blog/blogpost', {
     layout: false,
     settings: blogSettings,
@@ -63,12 +63,11 @@ app.get('/post/:postId', async (req: Request, res: Response) => {
 
 app.get('/page/:postId', async (req: Request, res: Response) => {
     
-  const postsQuery = await firestore.collection('BlogPosts').doc(req.params.postId).get();
-  const postData = postsQuery.data();
-  if(postData.user){
-    const uq = await postData.user.get()
-    postData.user = uq.data();
-  }
+  const postId: string = req.params.postId;
+  const postCollection = jugnu.createFirebaseCollection(BlogPost);
+
+  let postData: BlogPost;
+  postData = await postCollection.getDocument(postId);
   postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
 
   const now = new Date();

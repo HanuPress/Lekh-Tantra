@@ -38,7 +38,7 @@ You can test locally before deploying.
 
 **Run local**
 
-Run locally with command: `firebase emulators: start`
+Run locally with command: `firebase emulators:start`
 
 **Blog Setup**
 

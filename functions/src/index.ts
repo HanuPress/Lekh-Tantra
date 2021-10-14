@@ -1,3 +1,4 @@
+/* eslint-disable */
 const app = require('./app');
 const admin = require('./admin');
 const api = require('./api');

@@ -1,5 +1,5 @@
 module.exports = {
-  root: true,
+  root: false,
   env: {
     es6: true,
     node: true,
@@ -14,7 +14,7 @@ module.exports = {
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: ["tsconfig.json", "tsconfig.dev.json"],
+    project: ["functions/tsconfig.json", "functions/tsconfig.dev.json"],
     sourceType: "module",
   },
   ignorePatterns: [

@@ -1,5 +1,9 @@
+/* eslint-disable */
 import { Request, Response } from 'express';
-import { BlogPost } from '../types/lekhtantra';
+import { jugnu } from '@fire-fly/jugnu';
+import { BlogPost } from "./model/BlogPost";
+import { User } from "./model/User";
+
 import { validateFirebaseIdToken } from './firebaseValidator';
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -27,6 +31,7 @@ app.engine('handlebars', exphbs(hbsConfig));
 app.set('view engine', 'handlebars');
 
 const firestore = admin.firestore();
+jugnu.initialize({});
 
 app.get('/admin/login', async (req: Request, res: Response) => {
   const adminSettings = {
@@ -41,8 +46,9 @@ app.get('/admin/login', async (req: Request, res: Response) => {
 
 app.get('/admin/setup', async (req: Request, res: Response) => {
   
-  const userQuery = await firestore.collection('Users').get();
-  if(userQuery.docs.length > 0){
+  const userCollection = jugnu.createFirebaseCollection(User);
+  const userList = await userCollection.query([]);
+  if (userList.length > 0) {
     // We have some users setup.
     res.redirect('/admin/dashboard')
     return;
@@ -66,9 +72,12 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
    * Create default collections
    */
   
+  const userCollection = jugnu.createFirebaseCollection(User);
+  const postCollection = jugnu.createFirebaseCollection(BlogPost);
+   
   // Double check if an admin user exists
-  const userQuery = await firestore.collection('Users').get();
-  if(userQuery.docs.length > 0){
+  const userList = await userCollection.query([]);
+  if(userList.length > 0){
     // We have some users setup.
     res.redirect('/admin/dashboard')
     return;
@@ -91,16 +100,14 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
   const FieldValue = admin.firestore.FieldValue;
   
   // Setup Users
-  const adminUser = {
-    displayName: userRecord.displayName,
-    socialMedia: {
-      twitter: "",
-      facebook: "",
-      github: ""
-    }
-  }
-  await firestore.collection('Users').doc(userRecord.uid).set(adminUser);
-  const userRef = firestore.doc('Users/' + userRecord.uid);
+  const adminUser = new User(userRecord.uid);
+  adminUser.displayName = userRecord.displayName;
+  adminUser.socialMedia = {
+    twitter: "",
+    facebook: "",
+    github: ""
+  };
+  await userCollection.create(adminUser);
 
   const blogSettings = {
     blogName: req.body.blogname,
@@ -109,7 +116,8 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
       twitter: "",
       facebook: "",
       github: ""
-    }
+    },
+    currentVersion: _getVersion()
   }
   await firestore.collection('BlogSettings').doc('Settings').set(blogSettings);
 
@@ -119,52 +127,49 @@ app.post('/admin/setup', async (req: Request, res: Response) => {
   await firestore.collection('BlogSettings').doc('Counters').set(counters);
   
   // Setup About Me.
-  const aboutMe: BlogPost = {
-    title: "About Me",
-    content: "My name is " + userRecord.displayName,
-    meta: {
-      createdOn: FieldValue.serverTimestamp(), 
-      updatedOn: FieldValue.serverTimestamp(),
-      publishedOn: FieldValue.serverTimestamp()
-    },
-    type: "Page",
-    status: "Draft",
-    postLink: "about",
-    user: userRef
+  const aboutMe = new BlogPost("AboutMe");
+  aboutMe.title = "About Me";
+  aboutMe.content = "My name is " + userRecord.displayName;
+  aboutMe.meta = {
+    createdOn: FieldValue.serverTimestamp(), 
+    updatedOn: FieldValue.serverTimestamp(),
+    publishedOn: FieldValue.serverTimestamp()
   };
-  await firestore.collection('BlogPosts').doc('AboutMe').set(aboutMe);
+  aboutMe.type = "Page";
+  aboutMe.status = "Draft";
+  aboutMe.postLink = "about";
+  aboutMe.user = adminUser;
+  await postCollection.create(aboutMe);
 
   // Setup Terms and conditions Me.
-  const tnc: BlogPost = {
-    title: "Terms and Conditions",
-    content: "Terms and Conditions",
-    meta: {
-      createdOn: FieldValue.serverTimestamp(), 
-      updatedOn: FieldValue.serverTimestamp(),
-      publishedOn: FieldValue.serverTimestamp()
-    },
-    type: "Page",
-    status: "Draft",
-    postLink: "tnc",
-    user: userRef
+  const tnc = new BlogPost("tnc");
+  tnc.title = "Terms and Conditions";
+  tnc.content = "Terms and Conditions";
+  tnc.meta = {
+    createdOn: FieldValue.serverTimestamp(), 
+    updatedOn: FieldValue.serverTimestamp(),
+    publishedOn: FieldValue.serverTimestamp()
   };
-  await firestore.collection('BlogPosts').doc('tnc').set(tnc);
+  tnc.type = "Page";
+  tnc.status = "Draft";
+  tnc.postLink = "tnc";
+  tnc.user = adminUser;
+  await postCollection.create(tnc);
 
-  // Setup About Me.
-  const privacy: BlogPost = {
-    title: "Privacy",
-    content: "Privacy settings",
-    meta: {
-      createdOn: FieldValue.serverTimestamp(), 
-      updatedOn: FieldValue.serverTimestamp(),
-      publishedOn: FieldValue.serverTimestamp()
-    },
-    type: "Page",
-    status: "Draft",
-    postLink: "privacy",
-    user: userRef
+  // Setup Privacy Page.
+  const privacy = new BlogPost("privacy");
+  privacy.title = "Privacy";
+  privacy.content = "Privacy settings";
+  privacy.meta = {
+    createdOn: FieldValue.serverTimestamp(), 
+    updatedOn: FieldValue.serverTimestamp(),
+    publishedOn: FieldValue.serverTimestamp()
   };
-  await firestore.collection('BlogPosts').doc('privacy').set(privacy);
+  privacy.type = "Page";
+  privacy.status = "Draft";
+  privacy.postLink = "privacy";
+  privacy.user = adminUser;
+  await postCollection.create(privacy);
 
   // Make the default bucket as public
   const storage = admin.storage();
@@ -232,17 +237,19 @@ app.get('/admin/dashboard', async (req: Request, res: Response) => {
 
 app.get('/admin/postlist', async (req: Request, res: Response) => {
 
-  const postsQuery = await firestore.collection('BlogPosts').get();
+  const postCollection = jugnu.createFirebaseCollection(BlogPost);
+
+  let postData: BlogPost[];
+  postData = await postCollection.query([]);
+
   const posts: any = [];
-  for (const doc of postsQuery.docs) {
-    const postData = doc.data();
-    postData.meta.publishedOn = postData.meta.publishedOn.toDate().toLocaleString();
+  postData.forEach(pd => {
     posts.push({
-      postId: doc.id,
-      title: postData.title,
-      updatedOn: postData.meta.updatedOn.toDate().toLocaleString()
+      postId: pd.postId,
+      title: pd.title,
+      updatedOn: pd.meta.updatedOn.toDate().toLocaleString()
     });
-  }
+  });
 
   const adminSettings = {
     "page": "postlist"
@@ -351,13 +358,17 @@ async function checkSetup(req: Request, res: Response, next: any){
 
   const now = new Date();
   blogSettings.currentYear = now.getFullYear();
-  blogSettings.newVersion = {"code":2, "version":"Aplha2"};
+  blogSettings.newVersion = _getVersion();
   if (blogSettings.newVersion.code > blogSettings.currentVersion.code) {
     blogSettings.upgradeRequired = true;
   }
 
   next();
 
+}
+
+function _getVersion(){
+  return {"code":2, "version":"Aplha2"};
 }
 
 exports.admin = functions.https.onRequest(app);
